@@ -22,13 +22,13 @@ const MUSCLES = ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Antebraz
 const EQUIP = ['Barra', 'Mancuernas', 'Máquina', 'Polea', 'Peso corporal', 'Kettlebell', 'Banda', 'Otro'];
 const TYPES = { w: 'Peso y repeticiones', r: 'Solo repeticiones', t: 'Tiempo', c: 'Distancia y tiempo' };
 const SET_T = { n: 'Normal', w: 'Calentamiento', d: 'Drop set', f: 'Al fallo' };
-const ACCENTS = ['#0A84FF', '#30B0C7', '#34C759', '#FF9F0A', '#FF453A', '#FF375F', '#BF5AF2', '#8E8E93'];
+const ACCENTS = ['#8B5CF6', '#0A84FF', '#30B0C7', '#34C759', '#FF9F0A', '#FF453A', '#FF375F', '#8E8E93'];
 const LB = 2.20462;
 const PLATES = { kg: [25, 20, 15, 10, 5, 2.5, 1.25, 0.5], lb: [45, 35, 25, 10, 5, 2.5] };
 const PLATE_COL = { 25: '#FF3B30', 20: '#0A84FF', 15: '#FFCC00', 10: '#34C759', 5: '#8E8E93', 2.5: '#3A3A3C', 1.25: '#AEAEB2', 0.5: '#C7C7CC', 45: '#0A84FF', 35: '#FFCC00', '2.5lb': '#3A3A3C' };
 
 const DEFAULT_SETTINGS = {
-  theme: 'auto', accent: '#0A84FF', textSize: 'm', density: 'comfy',
+  theme: 'dark', accent: '#8B5CF6', textSize: 'm', density: 'comfy',
   unit: 'kg', rest: 90, autoRest: true, restSound: true, haptics: true, wakeLock: true,
   showPrev: true, showRpe: false, weekGoal: 3, increment: 2.5,
   bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25],
@@ -48,6 +48,8 @@ function normalize(st) {
   const f = freshState();
   st = Object.assign(f, st || {});
   st.settings = Object.assign({ ...DEFAULT_SETTINGS }, st.settings || {});
+  // marca morado y negro: se aplica una vez a quien tenía los colores de origen
+  if (!st.settings.brand2) { if (st.settings.accent === '#0A84FF') st.settings.accent = '#8B5CF6'; if (st.settings.theme === 'auto') st.settings.theme = 'dark'; st.settings.brand2 = true; }
   const ids = new Set(st.exercises.map(e => e.id));
   LIB.forEach(e => { if (!ids.has(e.id)) st.exercises.push({ ...e }); });
   st.workouts.sort((a, b) => b.start - a.start);

@@ -696,9 +696,9 @@ const SHEETS = {
     const P = U.pick;
     return {
       tall: true, title: P.mode === 'replace' ? 'Reemplazar' : 'Añadir ejercicio',
-      left: `<button class="link" data-a="exEdit">Nuevo</button>`,
-      right: P.mode === 'replace' ? undefined : `<button class="link strong" data-a="pickDone" ${P.sel.length ? '' : 'disabled'}>Añadir${P.sel.length ? ` (${P.sel.length})` : ''}</button>`,
-      body: `<input class="search" type="search" data-f="pickq" placeholder="Buscar" value="${esc(P.q)}" autocomplete="off"><div class="chips">${['Todos', ...MUSCLES].map(m => `<button class="chip${(P.m || 'Todos') === m ? ' on' : ''}" data-a="pickM" data-v="${m}">${m}</button>`).join('')}</div><div id="pickList">${pickListHTML()}</div>`,
+      left: `<button class="link" data-a="closeSheet">Cancelar</button>`,
+      right: P.mode === 'replace' ? '' : `<button class="link strong" data-a="pickDone" ${P.sel.length ? '' : 'disabled'}>Añadir${P.sel.length ? ` (${P.sel.length})` : ''}</button>`,
+      body: `<input class="search" type="search" data-f="pickq" placeholder="Buscar" value="${esc(P.q)}" autocomplete="off"><div class="chips">${['Todos', ...MUSCLES].map(m => `<button class="chip${(P.m || 'Todos') === m ? ' on' : ''}" data-a="pickM" data-v="${m}">${m}</button>`).join('')}</div><button class="btn sec" data-a="exEdit" style="height:42px;margin-bottom:10px">${ic('plus', 18, 2.2)} Crear ejercicio nuevo</button><div id="pickList">${pickListHTML()}</div>`,
     };
   },
 
@@ -760,7 +760,7 @@ const SHEETS = {
     const w = S.active, done = wSets(w), total = w.items.reduce((a, it) => a + it.sets.length, 0);
     return {
       title: '', right: '', body: `<div class="hero" style="padding-top:0"><h2 style="font-size:1.25rem">¿Terminar entreno?</h2><p>${done ? `${done} de ${total} series completadas${total > done ? '. Las no marcadas se descartarán.' : '.'}` : 'No has completado ninguna serie.'}</p></div>
-      <div class="stack">${done ? `<button class="btn pri" data-a="finishOk">Terminar y guardar</button>` : ''}<button class="btn ${done ? 'ghost' : 'danger'}" data-a="${done ? 'closeSheet' : 'discardOk'}">${done ? 'Seguir entrenando' : 'Descartar entreno'}</button></div>`,
+      <div class="stack">${done ? `<button class="btn pri" data-a="finishOk">Terminar y guardar</button>` : `<button class="btn danger" data-a="discardOk">Descartar entreno</button>`}<button class="btn ghost" data-a="closeSheet">Seguir entrenando</button></div>`,
     };
   },
 
@@ -1128,6 +1128,21 @@ document.addEventListener('click', ev => {
   catch (err) { console.error(err); toast('Algo ha fallado'); try { saveNow(); render(); } catch (e2) { } }
 });
 document.addEventListener('pointerdown', audioUnlock, { passive: true });
+// deslizar hacia abajo desde la cabecera de una hoja para cerrarla
+let drag = null;
+document.addEventListener('touchstart', ev => {
+  const h = ev.target.closest('#sheets .swrap:last-child .sheet-h, #sheets .swrap:last-child .grab');
+  if (!h || ev.target.closest('button,input,select,textarea')) return;
+  drag = { y: ev.touches[0].clientY, sheet: h.closest('.sheet'), dy: 0 };
+}, { passive: true });
+document.addEventListener('touchmove', ev => {
+  if (!drag) return; drag.dy = Math.max(0, ev.touches[0].clientY - drag.y);
+  drag.sheet.style.transition = 'none'; drag.sheet.style.transform = `translateY(${drag.dy}px)`;
+}, { passive: true });
+document.addEventListener('touchend', () => {
+  if (!drag) return; const d = drag; drag = null;
+  if (d.dy > 90) closeSheet(); else { d.sheet.style.transition = 'transform .2s'; d.sheet.style.transform = ''; }
+});
 function onField(ev) {
   const el = ev.target, f = el.dataset && el.dataset.f; if (!f) return;
   const d = doc();
